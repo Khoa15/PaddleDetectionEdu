@@ -133,54 +133,57 @@ def plot_tracking(image,
                   entrance=None):
     im = np.ascontiguousarray(np.copy(image))
     im_h, im_w = im.shape[:2]
-
+    blank_im = np.zeros((im_h, im_w, 3), np.uint8)
     text_scale = max(0.5, image.shape[1] / 3000.)
     text_thickness = 2
     line_thickness = max(1, int(image.shape[1] / 500.))
 
-    cv2.putText(
-        im,
-        'frame: %d fps: %.2f num: %d' % (frame_id, fps, len(tlwhs)),
-        (0, int(15 * text_scale) + 5),
-        cv2.FONT_ITALIC,
-        text_scale, (0, 0, 255),
-        thickness=text_thickness)
+    # cv2.putText(
+    #     im,
+    #     'frame: %d fps: %.2f num: %d' % (frame_id, fps, len(tlwhs)),
+    #     (0, int(15 * text_scale) + 5),
+    #     cv2.FONT_ITALIC,
+    #     text_scale, (0, 0, 255),
+    #     thickness=text_thickness)
     for i, tlwh in enumerate(tlwhs):
         x1, y1, w, h = tlwh
         intbox = tuple(map(int, (x1, y1, x1 + w, y1 + h)))
         obj_id = int(obj_ids[i])
         id_text = 'ID: {}'.format(int(obj_id))
+        ids2names = [ids2names[0]]
         if ids2names != []:
             assert len(
                 ids2names) == 1, "plot_tracking only supports single classes."
             id_text = 'ID: {}_'.format(ids2names[0]) + id_text
         _line_thickness = 1 if obj_id <= 0 else line_thickness
         color = get_color(abs(obj_id))
-        cv2.rectangle(
-            im, intbox[0:2], intbox[2:4], color=color, thickness=line_thickness)
-        cv2.putText(
-            im,
-            id_text, (intbox[0], intbox[1] - 25),
-            cv2.FONT_ITALIC,
-            text_scale, (0, 255, 255),
-            thickness=text_thickness)
+        blank_im[intbox[1] : intbox[3], intbox[0] : intbox[2]] =  im[intbox[1] : intbox[3], intbox[0] : intbox[2]]
+    im = blank_im
+        # cv2.rectangle(
+        #     im, intbox[0:2], intbox[2:4], color=color, thickness=line_thickness)
+        # cv2.putText(
+        #     im,
+        #     id_text, (intbox[0], intbox[1] - 25),
+        #     cv2.FONT_ITALIC,
+        #     text_scale, (0, 255, 255),
+        #     thickness=text_thickness)
 
-        if scores is not None:
-            text = 'score: {:.2f}'.format(float(scores[i]))
-            cv2.putText(
-                im,
-                text, (intbox[0], intbox[1] - 6),
-                cv2.FONT_ITALIC,
-                text_scale, (0, 255, 0),
-                thickness=text_thickness)
-    if do_entrance_counting:
-        entrance_line = tuple(map(int, entrance))
-        cv2.rectangle(
-            im,
-            entrance_line[0:2],
-            entrance_line[2:4],
-            color=(0, 255, 255),
-            thickness=line_thickness)
+        # if scores is not None:
+        #     text = 'score: {:.2f}'.format(float(scores[i]))
+            # cv2.putText(
+            #     im,
+            #     text, (intbox[0], intbox[1] - 6),
+            #     cv2.FONT_ITALIC,
+            #     text_scale, (0, 255, 0),
+            #     thickness=text_thickness)
+    # if do_entrance_counting:
+    #     entrance_line = tuple(map(int, entrance))
+        # cv2.rectangle(
+        #     im,
+        #     entrance_line[0:2],
+        #     entrance_line[2:4],
+        #     color=(0, 255, 255),
+        #     thickness=line_thickness)
     return im
 
 
@@ -201,6 +204,7 @@ def plot_tracking_dict(image,
                        center_traj=None):
     im = np.ascontiguousarray(np.copy(image))
     im_h, im_w = im.shape[:2]
+    blank_image = np.zeros((im_w, im_h, 3), np.uint8)
     if do_break_in_counting or do_illegal_parking_recognition:
         entrance = np.array(entrance[:-1])  # last pair is [im_w, im_h] 
 
@@ -212,29 +216,29 @@ def plot_tracking_dict(image,
         if records is not None:
             start = records[-1].find('Total')
             end = records[-1].find('In')
-            cv2.putText(
-                im,
-                records[-1][start:end], (0, int(40 * text_scale) + 10),
-                cv2.FONT_ITALIC,
-                text_scale, (0, 0, 255),
-                thickness=text_thickness)
+            # cv2.putText(
+            #     im,
+            #     records[-1][start:end], (0, int(40 * text_scale) + 10),
+            #     cv2.FONT_ITALIC,
+            #     text_scale, (0, 0, 255),
+            #     thickness=text_thickness)
 
     if num_classes == 1 and do_entrance_counting:
         entrance_line = tuple(map(int, entrance))
-        cv2.rectangle(
-            im,
-            entrance_line[0:2],
-            entrance_line[2:4],
-            color=(0, 255, 255),
-            thickness=line_thickness)
+        # cv2.rectangle(
+        #     im,
+        #     entrance_line[0:2],
+        #     entrance_line[2:4],
+        #     color=(0, 255, 255),
+        #     thickness=line_thickness)
         # find start location for entrance counting data
         start = records[-1].find('In')
-        cv2.putText(
-            im,
-            records[-1][start:-1], (0, int(60 * text_scale) + 10),
-            cv2.FONT_ITALIC,
-            text_scale, (0, 0, 255),
-            thickness=text_thickness)
+        # cv2.putText(
+        #     im,
+        #     records[-1][start:-1], (0, int(60 * text_scale) + 10),
+        #     cv2.FONT_ITALIC,
+        #     text_scale, (0, 0, 255),
+        #     thickness=text_thickness)
 
     if num_classes == 1 and (do_break_in_counting or
                              do_illegal_parking_recognition):
@@ -255,13 +259,13 @@ def plot_tracking_dict(image,
         if do_break_in_counting:
             # find start location for break in counting data
             start = records[-1].find('Break_in')
-            cv2.putText(
-                im,
-                records[-1][start:-1],
-                (entrance[0][0] - 10, entrance[0][1] - 10),
-                cv2.FONT_ITALIC,
-                text_scale, (0, 0, 255),
-                thickness=text_thickness)
+            # cv2.putText(
+            #     im,
+            #     records[-1][start:-1],
+            #     (entrance[0][0] - 10, entrance[0][1] - 10),
+            #     cv2.FONT_ITALIC,
+            #     text_scale, (0, 0, 255),
+            #     thickness=text_thickness)
 
         if illegal_parking_dict is not None and len(illegal_parking_dict) != 0:
             for key, value in illegal_parking_dict.items():
@@ -271,28 +275,28 @@ def plot_tracking_dict(image,
                     plate = ""
 
                 # red box
-                cv2.rectangle(im, (int(x1), int(y1)),
-                              (int(x1 + w), int(y1 + h)), (0, 0, 255), 2)
+                # cv2.rectangle(im, (int(x1), int(y1)),
+                #               (int(x1 + w), int(y1 + h)), (0, 0, 255), 2)
 
-                cv2.putText(
-                    im,
-                    "illegal_parking:" + plate,
-                    (int(x1) + 5, int(16 * text_scale + y1 + 15)),
-                    cv2.FONT_ITALIC,
-                    text_scale * 1.5, (0, 0, 255),
-                    thickness=text_thickness)
+                # cv2.putText(
+                #     im,
+                #     "illegal_parking:" + plate,
+                #     (int(x1) + 5, int(16 * text_scale + y1 + 15)),
+                #     cv2.FONT_ITALIC,
+                #     text_scale * 1.5, (0, 0, 255),
+                #     thickness=text_thickness)
 
     for cls_id in range(num_classes):
         tlwhs = tlwhs_dict[cls_id]
         obj_ids = obj_ids_dict[cls_id]
         scores = scores_dict[cls_id]
-        cv2.putText(
-            im,
-            'frame: %d fps: %.2f num: %d' % (frame_id, fps, len(tlwhs)),
-            (0, int(15 * text_scale) + 5),
-            cv2.FONT_ITALIC,
-            text_scale, (0, 0, 255),
-            thickness=text_thickness)
+        # cv2.putText(
+        #     im,
+        #     'frame: %d fps: %.2f num: %d' % (frame_id, fps, len(tlwhs)),
+        #     (0, int(15 * text_scale) + 5),
+        #     cv2.FONT_ITALIC,
+        #     text_scale, (0, 0, 255),
+        #     thickness=text_thickness)
 
         record_id = set()
         for i, tlwh in enumerate(tlwhs):
@@ -324,44 +328,46 @@ def plot_tracking_dict(image,
 
             color = get_color(abs(obj_id)) if in_region == False else (0, 0,
                                                                        255)
-            cv2.rectangle(
-                im,
-                intbox[0:2],
-                intbox[2:4],
-                color=color,
-                thickness=line_thickness)
-            cv2.putText(
-                im,
-                id_text, (intbox[0], intbox[1] - 25),
-                cv2.FONT_ITALIC,
-                text_scale,
-                color,
-                thickness=text_thickness)
+            blank_image[intbox[1] : intbox[3], intbox[0] : intbox[2]] =  im[intbox[1] : intbox[3], intbox[0] : intbox[2]]
+        im = blank_image
+        #     cv2.rectangle(
+        #         im,
+        #         intbox[0:2],
+        #         intbox[2:4],
+        #         color=color,
+        #         thickness=line_thickness)
+        #     cv2.putText(
+        #         im,
+        #         id_text, (intbox[0], intbox[1] - 25),
+        #         cv2.FONT_ITALIC,
+        #         text_scale,
+        #         color,
+        #         thickness=text_thickness)
 
-            if do_break_in_counting and in_region:
-                cv2.putText(
-                    im,
-                    'Break in now.', (intbox[0], intbox[1] - 50),
-                    cv2.FONT_ITALIC,
-                    text_scale, (0, 0, 255),
-                    thickness=text_thickness)
+        #     if do_break_in_counting and in_region:
+        #         cv2.putText(
+        #             im,
+        #             'Break in now.', (intbox[0], intbox[1] - 50),
+        #             cv2.FONT_ITALIC,
+        #             text_scale, (0, 0, 255),
+        #             thickness=text_thickness)
 
-            if scores is not None:
-                text = 'score: {:.2f}'.format(float(scores[i]))
-                cv2.putText(
-                    im,
-                    text, (intbox[0], intbox[1] - 6),
-                    cv2.FONT_ITALIC,
-                    text_scale,
-                    color,
-                    thickness=text_thickness)
-        if center_traj is not None:
-            for traj in center_traj:
-                for i in traj.keys():
-                    if i not in record_id:
-                        continue
-                    for point in traj[i]:
-                        cv2.circle(im, point, 3, (0, 0, 255), -1)
+        #     if scores is not None:
+        #         text = 'score: {:.2f}'.format(float(scores[i]))
+        #         cv2.putText(
+        #             im,
+        #             text, (intbox[0], intbox[1] - 6),
+        #             cv2.FONT_ITALIC,
+        #             text_scale,
+        #             color,
+        #             thickness=text_thickness)
+        # if center_traj is not None:
+        #     for traj in center_traj:
+        #         for i in traj.keys():
+        #             if i not in record_id:
+        #                 continue
+        #             for point in traj[i]:
+        #                 cv2.circle(im, point, 3, (0, 0, 255), -1)
     return im
 
 

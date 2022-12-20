@@ -204,7 +204,7 @@ def plot_tracking_dict(image,
                        center_traj=None):
     im = np.ascontiguousarray(np.copy(image))
     im_h, im_w = im.shape[:2]
-    blank_image = np.zeros((im_w, im_h, 3), np.uint8)
+    blank_image = np.zeros((im_h, im_w, 3), np.uint8)
     if do_break_in_counting or do_illegal_parking_recognition:
         entrance = np.array(entrance[:-1])  # last pair is [im_w, im_h] 
 
